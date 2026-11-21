@@ -1,0 +1,7 @@
+#!/bin/sh
+HERE="$(dirname "$(readlink -f "$0")")"
+# The Siril binary is in usr/lib/sitak, while its bundled libraries are in
+# usr/lib. Add AppDir library paths before launching the CLI wrapper.
+export LD_LIBRARY_PATH="$HERE/usr/lib:$HERE/usr/lib/x86_64-linux-gnu${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export PATH="$HERE/usr/bin:$PATH"
+exec "$HERE/usr/bin/sitak" "$@"

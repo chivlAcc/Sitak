@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Sitak CLI
+Comment=Command-line astrophotography calibration and stacking with FITS and TIFF export
+Exec=sitak
+Icon=sitak
+Type=Application
+Categories=Science;Astronomy;
+Terminal=true

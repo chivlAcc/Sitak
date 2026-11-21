@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="console-application">
+  <id>sitak</id>
+  <name>Sitak CLI</name>
+  <summary>Command-line astrophotography calibration and stacking</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <developer_name>chivl</developer_name>
+  <description>
+    <p>Sitak prepares and stacks astrophotography frames using the Siril 1.4.5 processing engine. It accepts session folders and 7z archives, and can export a 32-bit FITS or TIFF master image.</p>
+    <p>TIFF export supports optional lossless Adobe Deflate compression. Sitak is a command-line application for Linux.</p>
+  </description>
+  <launchable type="desktop-id">sitak.desktop</launchable>
+  <releases>
+    <release version="2.0.0" date="2026-11-21">
+      <description><p>Adds 32-bit TIFF export, including optional Deflate compression.</p></description>
+    </release>
+  </releases>
+</component>
