@@ -1,10 +1,10 @@
 # Sitak
 
-**Astrophotography preprocessing from the command line.** Sitak organizes your light and calibration frames, then uses Siril's command-line engine to calibrate, align, and stack them. Export the final image as FITS or 32-bit TIFF, with optional lossless TIFF Deflate compression.
+**Astrophotography preprocessing from the command line.** Sitak organizes your light and calibration frames, then uses Siril's command-line engine to calibrate, align, and stack them. Export the final image as FITS, standard 32-bit TIFF, or a stretched 16-bit TIFF for convenient viewing and basic editing on phones.
 
-**Current version:** 2.0.0  
-**Author:** chivl  
-**Platform:** Linux x86_64 AppImage  
+**Current version:** 2.0.1
+**Author:** chivl
+**Platform:** Linux x86_64 AppImage
 **Sitak license:** GNU GPL version 3 only (`GPL-3.0-only`). See [`LICENSE`](LICENSE).
 
 Sitak is an independent command-line wrapper. It is not the Siril application, and it is not affiliated with or endorsed by the Siril project. Siril is a separate upstream project; its official command reference describes Siril as GPL version 3 or later. See the [Siril project](https://gitlab.com/free-astro/siril) and [Siril's official man page](https://siril.org/docs/man/).
@@ -14,6 +14,8 @@ Sitak is an independent command-line wrapper. It is not the Siril application, a
 Sitak accepts an astrophotography session folder or a `.7z` archive. It looks for light frames and optional calibration frames, stages the originals without changing them, and runs Siril in headless mode. Depending on the frames you provide, Siril can build calibration masters, calibrate the lights, register them, and stack them into a 32-bit image.
 
 The default output is `finalstacked.fit.fz` in the folder where you start Sitak. You can choose uncompressed FITS, TIFF, or TIFF with Deflate compression instead. Sitak does not overwrite an existing output.
+
+For a finished image that's easier to view and adjust on a phone, use `--mobile-tiff`. Sitak applies Siril's linked auto-stretch and writes a 16-bit TIFF with lossless Deflate compression. This creates a rendered SDR-style image: it is intended for appearance, sharing, and basic edits, not for preserving the original linear processing data. Keep using standard TIFF/FITS output when you want the unstretched stack.
 
 ## Quick start
 
@@ -97,12 +99,24 @@ Use `--tiff-deflate` to write a TIFF using Adobe Deflate compression. Deflate is
 
 Use `.tif` or `.tiff` for TIFF output. Do not combine TIFF output with `--no-compress`; that option is for uncompressed FITS. Sitak creates the output folder if necessary but will stop rather than overwrite an existing file.
 
+### Mobile-ready stretched TIFF
+
+Use `--mobile-tiff` for a ready-to-view image intended for an ordinary SDR phone screen and basic mobile editing. It applies Siril's linked auto-stretch (the standard auto-stretch target background) so the color channels stay balanced, then saves a 16-bit TIFF with lossless Deflate compression. By default, the file is `finalstacked_mobile.tif`.
+
+```bash
+./Sitak-x86_64.AppImage my-session --mobile-tiff
+./Sitak-x86_64.AppImage my-session --mobile-tiff -o phone-edit.tif
+```
+
+This stretch permanently changes the pixel values in this output. The result is meant for viewing, sharing, and modest brightness/color adjustments; it does not preserve the fully linear data of a standard FITS or TIFF stack. Compressed TIFF size depends on image dimensions and content, so Sitak cannot guarantee a specific size.
+
 ### Default filenames
 
 - No format option: `finalstacked.fit.fz`
 - `--no-compress`: `finalstacked.fits`
 - `--tiff`: `finalstacked.tif`
 - `--tiff-deflate`: `finalstacked.tif`
+- `--mobile-tiff`: `finalstacked_mobile.tif` (stretched, 16-bit, Deflate-compressed)
 
 Relative output paths are based on the folder where you launched Sitak.
 
@@ -129,6 +143,7 @@ For a project named `Orion`, the TIFF batch result is named `Orion_finalstacked.
 -o, --output FILE   Set the output filename and folder
 --tiff              Write uncompressed 32-bit TIFF
 --tiff-deflate      Write 32-bit TIFF with lossless Deflate compression
+--mobile-tiff       Save a linked auto-stretched 16-bit Deflate TIFF for phone editing
 --no-compress       Write uncompressed FITS
 --batch             Process projects in a parent folder
 --recursive         Search nested folders in batch mode
@@ -145,7 +160,7 @@ Exit codes: `0` means success; `1` means invalid or missing input; `2` means reg
 
 ## Processing notes and limitations
 
-Sitak uses the Siril 1.4.5 command-line engine. It does not reimplement Siril's image-processing algorithms. The exact processing result depends on your camera, input frames, calibration data, and Siril/LibRaw format support. Registration can fail when the frames do not contain enough matching stars or do not overlap sufficiently. Test with copies of your own data before using Sitak in an important workflow.
+Sitak uses the Siril 1.4.5 command-line engine. It does not reimplement Siril's image-processing algorithms. The exact processing result depends on your camera, input frames, calibration data, and Siril/LibRaw format support. Registration can fail when the frames do not contain enough matching stars or do not overlap sufficiently. The mobile TIFF uses a linked auto-stretch based on Siril's defaults and is a rendered SDR output; it will not retain the full linear edit latitude. Test with copies of your own data before using Sitak in an important workflow.
 
 Sitak is a CLI tool, not a graphical editor. This release provides a Linux x86_64 AppImage; it does not include a Windows `.exe`.
 
@@ -180,6 +195,10 @@ The build can take several minutes. No graphical display is required. The AppIma
 Sitak's own source files are declared under **GPL-3.0-only**. The full GNU GPL version 3 text is in [`LICENSE`](LICENSE). The Sitak project does not claim copyright over Siril or third-party components.
 
 Siril's official command reference states that Siril is licensed under **GPL version 3 or later**. This is distinct from Sitak's `GPL-3.0-only` declaration. The AppImage bundles the Siril 1.4.5 command-line program and other software components. Each component keeps its own copyright notices and license terms. See the [Siril upstream project](https://gitlab.com/free-astro/siril), its [official license statement](https://siril.org/docs/man/), and the notices included with the source archive.
+
+### Siril credit
+
+Siril was originally written by Francois Meyer. Its listed current maintainers are Vincent Hourdin, Cyril Richard, and Cecile Melis. Siril has many other contributors; see the [Siril 1.4.5 AUTHORS file](https://gitlab.com/free-astro/siril/-/blob/1.4.5/AUTHORS) for the upstream project's full credit list. Sitak is a separate project and does not claim authorship of Siril.
 
 If you modify Siril or another GPL-covered component and distribute that modified program, keep its existing copyright and license notices, clearly mark your changes and the date, and follow the applicable GPL terms. If you distribute a binary, make the complete source corresponding to that exact binary available under the required terms. The GNU project explains these requirements in the [GPL version 3 text](https://www.gnu.org/licenses/gpl-3.0.en.html) and its [GPL FAQ](https://www.gnu.org/licenses/gpl-faq.en.html). Keep the matching source archive, build scripts, license texts, and third-party notices available with each release. Do not present Sitak as an official Siril release or imply Siril endorses it.
 
