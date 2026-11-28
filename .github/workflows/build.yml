@@ -1,0 +1,28 @@
+name: Build Sitak Linux AppImage
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+
+jobs:
+  appimage:
+    name: Linux AppImage (x86_64)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Siril and Sitak build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential meson ninja-build cmake git curl unzip pkg-config 7zip \
+            libglib2.0-dev libgtk-3-dev libgtksourceview-4-dev libjson-glib-dev \
+            libgsl-dev liblcms2-dev libfftw3-dev libcfitsio-dev libraw-dev \
+            libopencv-dev libtiff-dev libjpeg-dev libpng-dev libexiv2-dev python3
+      - name: Build AppImage
+        run: ./packaging/build-appimage.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sitak-appimage-x86_64
+          path: Sitak-x86_64.AppImage
+          if-no-files-found: error
