@@ -86,9 +86,9 @@ install -m 0644 "$ROOT/LICENSE" "$APPDIR/LICENSE"
 SOURCE_DIR="$APPDIR/usr/share/sitak/source"
 mkdir -p "$SOURCE_DIR"
 tar -czf "$SOURCE_DIR/sitak-corresponding-source.tar.gz" --exclude-vcs \
-  -C "$ROOT" src/sitak.sh meson.build README.md LICENSE packaging .github/workflows/build.yml upstream/siril-1.4.5
+  -C "$ROOT" src/sitak.sh meson.build README.md RELEASE_NOTES_v2.0.1.md LICENSE packaging .github/workflows/build.yml upstream/siril-1.4.5
 cat > "$SOURCE_DIR/DEPENDENCIES.txt" <<'EOF'
-Sitak 2.0.0 is authored by chivl and licensed GPL-3.0-only.
+Sitak 2.0.1 is authored by chivl and licensed GPL-3.0-only.
 The executable bundles the Siril 1.4.5 CLI engine. Siril's upstream project states GPL version 3 or later (GPL-3.0-or-later).
 Siril upstream repository: https://gitlab.com/free-astro/siril (release source is also included in this archive).
 librtprocess commit: 9a858270acb2096e2e403d932760ee688fcac425

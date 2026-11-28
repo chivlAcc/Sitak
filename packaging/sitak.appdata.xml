@@ -7,13 +7,13 @@
   <project_license>GPL-3.0-only</project_license>
   <developer_name>chivl</developer_name>
   <description>
-    <p>Sitak prepares and stacks astrophotography frames using the Siril 1.4.5 processing engine. It accepts session folders and 7z archives, and can export a 32-bit FITS or TIFF master image.</p>
-    <p>TIFF export supports optional lossless Adobe Deflate compression. Sitak is a command-line application for Linux.</p>
+    <p>Sitak prepares and stacks astrophotography frames using the Siril 1.4.5 processing engine. It accepts session folders and 7z archives, and can export FITS, standard 32-bit TIFF, or a mobile-ready stretched 16-bit TIFF.</p>
+    <p>Mobile TIFF uses a linked SDR auto-stretch and lossless Adobe Deflate compression for viewing, sharing, and basic phone editing. Sitak is a command-line application for Linux.</p>
   </description>
   <launchable type="desktop-id">sitak.desktop</launchable>
   <releases>
-    <release version="2.0.0" date="2026-11-21">
-      <description><p>Adds 32-bit TIFF export, including optional Deflate compression.</p></description>
+    <release version="2.0.1" date="2026-11-25">
+      <description><p>Adds mobile-ready 16-bit stretched TIFF export with lossless Deflate compression; preserves the existing linear TIFF and FITS export choices.</p></description>
     </release>
   </releases>
 </component>
