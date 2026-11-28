@@ -5,7 +5,7 @@ set -Eeuo pipefail
 # Copyright (C) 2026 chivl
 # SPDX-License-Identifier: GPL-3.0-only
 # This program comes with ABSOLUTELY NO WARRANTY. See LICENSE for details.
-SITAK_VERSION="2.0.0"
+SITAK_VERSION="2.0.1"
 EXIT_OK=0
 EXIT_INPUT=1
 EXIT_REGISTRATION=2
@@ -15,6 +15,7 @@ CLEAN_TEMP=0
 NO_COMPRESS=0
 TIFF_MODE=0
 TIFF_DEFLATE=0
+MOBILE_TIFF=0
 BATCH=0
 RECURSIVE=0
 SIGMA="3.0"
@@ -24,7 +25,7 @@ OUTPUT_EXPLICIT=0
 
 usage() {
   cat <<'EOF'
-Sitak 2.0.0 — astrophotography preprocessing using Siril 1.4.5
+Sitak 2.0.1 — astrophotography preprocessing using Siril 1.4.5
 
 Usage:
   sitak [session-folder|frames.7z] [-o output-file] [OPTIONS]
@@ -32,15 +33,16 @@ Usage:
 
 If no input is given, Sitak uses the current folder. If -o is omitted,
 Sitak writes finalstacked.fit.fz in the current folder (or finalstacked.tif with
---tiff/--tiff-deflate).
+--tiff/--tiff-deflate, or finalstacked_mobile.tif with --mobile-tiff).
 A session may contain lights/light, darks/dark, flats/flat, biases/bias,
 or offsets folders. An unclassified collection of images is treated as lights.
 A .7z archive may contain those folders or one unclassified lights collection.
 
 Options:
   -o, --output FILE  Output path: .fit.fz, .fit/.fits, or .tif/.tiff
-  --tiff             Use uncompressed 32-bit TIFF (default: ./finalstacked.tif)
+  --tiff             Use standard uncompressed 32-bit TIFF (default: ./finalstacked.tif)
   --tiff-deflate     Use 32-bit TIFF with lossless Deflate compression
+  --mobile-tiff      Apply linked SDR auto-stretch; save 16-bit Deflate TIFF
   --batch            Process projects below the input folder, or current folder
   --recursive        With --batch, search nested folders for projects
   --sigma FLOAT      Final stack sigma threshold (default 3.0)
@@ -147,6 +149,9 @@ process_one() (
   fi
   if (( TIFF_DEFLATE )) && [[ "$OUTPUT_FORMAT" != tiff ]]; then
     fail input "--tiff-deflate can only be used with a .tif or .tiff output" "$EXIT_INPUT"
+  fi
+  if (( MOBILE_TIFF )) && [[ "$OUTPUT_FORMAT" != tiff ]]; then
+    fail input "--mobile-tiff requires a .tif or .tiff output filename" "$EXIT_INPUT"
   fi
   if (( NO_COMPRESS )) && [[ "$OUTPUT_FORMAT" == tiff ]]; then
     fail input "TIFF is uncompressed by default; omit --no-compress or use --tiff-deflate" "$EXIT_INPUT"
@@ -344,7 +349,11 @@ SIRIL_LIGHTS
     printf 'stack r_pp_light rej winsorized %s %s -norm=addscale -output_norm -rgb_equal -32b -out=Sitak_master\n' "$SIGMA" "$SIGMA"
     if [[ "$OUTPUT_FORMAT" == tiff ]]; then
       if (( OUTPUT_COMPRESS )); then printf 'load Sitak_master.fit.fz\n'; else printf 'load Sitak_master.fit\n'; fi
-      if (( TIFF_DEFLATE )); then printf 'savetif32 Sitak_export -deflate\n'; else printf 'savetif32 Sitak_export\n'; fi
+      if (( MOBILE_TIFF )); then
+        # Linked Siril auto-stretch preserves channel balance. Save 16-bit,
+        # losslessly Deflate-compressed TIFF for SDR phone editing/sharing.
+        printf 'autostretch -linked\nsavetif Sitak_export -deflate\n'
+      elif (( TIFF_DEFLATE )); then printf 'savetif32 Sitak_export -deflate\n'; else printf 'savetif32 Sitak_export\n'; fi
     fi
     printf 'close\n'
   } > "$SCRIPT"
@@ -473,6 +482,7 @@ while (($#)); do
     --no-compress) NO_COMPRESS=1 ;;
     --tiff) TIFF_MODE=1 ;;
     --tiff-deflate) TIFF_MODE=1; TIFF_DEFLATE=1 ;;
+    --mobile-tiff) MOBILE_TIFF=1 ;;
     --batch) BATCH=1 ;;
     --recursive) RECURSIVE=1 ;;
     --sigma)
@@ -490,13 +500,15 @@ while (($#)); do
   shift
 done
 (( ! RECURSIVE || BATCH )) || fail input "--recursive must be used with --batch" "$EXIT_INPUT"
+(( ! MOBILE_TIFF || (! TIFF_MODE && ! TIFF_DEFLATE) )) || fail input "--mobile-tiff cannot be combined with --tiff or --tiff-deflate; choose one TIFF output mode" "$EXIT_INPUT"
 [[ -n "$SESSION_ARG" ]] || SESSION_ARG="$(pwd -P)"
 if [[ -z "$OUTPUT_ARG" ]]; then
-  if (( TIFF_MODE )); then OUTPUT_ARG="finalstacked.tif"
+  if (( MOBILE_TIFF )); then OUTPUT_ARG="finalstacked_mobile.tif"
+  elif (( TIFF_MODE )); then OUTPUT_ARG="finalstacked.tif"
   elif (( NO_COMPRESS )); then OUTPUT_ARG="finalstacked.fits"
   else OUTPUT_ARG="finalstacked.fit.fz"; fi
 fi
-case "${OUTPUT_ARG,,}" in *.tif|*.tiff) : ;; *) (( ! TIFF_MODE )) || fail input "--tiff/--tiff-deflate requires a .tif or .tiff output filename" "$EXIT_INPUT" ;; esac
+case "${OUTPUT_ARG,,}" in *.tif|*.tiff) : ;; *) (( ! TIFF_MODE && ! MOBILE_TIFF )) || fail input "TIFF output options require a .tif or .tiff output filename" "$EXIT_INPUT" ;; esac
 if (( NO_COMPRESS )) && [[ "${OUTPUT_ARG,,}" == *.fz ]]; then
   fail input "--no-compress requires an output name ending in .fit or .fits" "$EXIT_INPUT"
 fi
